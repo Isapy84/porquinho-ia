@@ -1,0 +1,72 @@
+{
+    "orcamento_inicial": 704.0,
+    "saldo_atual": 704.0,
+    "gastos": [
+        {
+            "item": "Start",
+            "valor": 0.0,
+            "categoria": "Outros",
+            "data": "28/06/2026"
+        }
+    ],
+    "6373754616": {
+        "orcamento_inicial": 704.0,
+        "saldo_atual": 131.0,
+        "gastos": [
+            {
+                "item": "Faculdade",
+                "valor": 300.0,
+                "categoria": "Outros",
+                "data": "28/06/2026"
+            },
+            {
+                "item": "Tablet",
+                "valor": 120.0,
+                "categoria": "Eletrônicos",
+                "data": "28/06/2026"
+            },
+            {
+                "item": "pincéis de maquiagem",
+                "valor": 34.0,
+                "categoria": "Beleza",
+                "data": "28/06/2026"
+            },
+            {
+                "item": "Burger King",
+                "valor": 45.0,
+                "categoria": "Alimentação",
+                "data": "28/06/2026"
+            },
+            {
+                "item": "pizza",
+                "valor": 45.0,
+                "categoria": "Alimentação",
+                "data": "28/06/2026"
+            },
+            {
+                "item": "Komiketo",
+                "valor": 29.0,
+                "categoria": "Alimentação",
+                "data": "30/06/2026"
+            }
+        ]
+    },
+    "1780935752": {
+        "orcamento_inicial": 3000.0,
+        "saldo_atual": 2430.0,
+        "gastos": [
+            {
+                "item": "Supermercado",
+                "valor": 450.0,
+                "categoria": "Alimentação",
+                "data": "29/06/2026"
+            },
+            {
+                "item": "Combustível",
+                "valor": 120.0,
+                "categoria": "Transporte",
+                "data": "29/06/2026"
+            }
+        ]
+    }
+}
