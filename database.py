@@ -9,7 +9,12 @@ load_dotenv(os.path.join(BASE_DIR, ".env"))
 ARQUIVO_BANCO = os.path.join(BASE_DIR, "dados.json")
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
+if SUPABASE_URL:
+    SUPABASE_URL = SUPABASE_URL.strip().replace("\n", "").replace("\r", "").replace(" ", "")
+
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+if SUPABASE_KEY:
+    SUPABASE_KEY = SUPABASE_KEY.strip().replace("\n", "").replace("\r", "").replace(" ", "")
 
 supabase_client = None
 

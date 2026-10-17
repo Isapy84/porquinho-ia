@@ -31,7 +31,12 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 # 🔑 CONFIGURAÇÕES DE TOKENS
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+if TELEGRAM_TOKEN:
+    TELEGRAM_TOKEN = TELEGRAM_TOKEN.strip().replace("\n", "").replace("\r", "").replace(" ", "")
+
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if GEMINI_API_KEY:
+    GEMINI_API_KEY = GEMINI_API_KEY.strip().replace("\n", "").replace("\r", "").replace(" ", "")
 
 ai_client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
 
