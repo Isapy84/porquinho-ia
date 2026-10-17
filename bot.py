@@ -2,10 +2,30 @@ import logging
 from datetime import datetime
 import json
 import os
+import sys
+import threading
+from http.server import HTTPServer, BaseHTTPRequestHandler
+
+# Garante suporte a emojis no terminal Windows
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
+from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 from google import genai
 from google.genai import types
+
+# Importa o módulo do banco de dados (Supabase + fallback local)
+from database import carregar_todos_dados, salvar_todos_dados, salvar_usuario, deletar_usuario
+
+# Diretório base do projeto
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Carrega variáveis do .env
+load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
@@ -13,18 +33,29 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-ARQUIVO_BANCO = "dados.json"
-ai_client = genai.Client(api_key=GEMINI_API_KEY)
+ai_client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
 
-def carregar_todos_dados():
-    if not os.path.exists(ARQUIVO_BANCO):
-        return {}
-    with open(ARQUIVO_BANCO, "r", encoding="utf-8") as f:
-        return json.load(f)
+# 🌐 SERVIDOR WEB PARA MONITORAMENTO E KEEPALIVE NA NUVEM (RENDER)
+class KeepAliveHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-type", "application/json; charset=utf-8")
+        self.end_headers()
+        self.wfile.write(b'{"status": "online", "service": "Porquinho IA 24/7"}')
 
-def salvar_todos_dados(dados):
-    with open(ARQUIVO_BANCO, "w", encoding="utf-8") as f:
-        json.dump(dados, f, ensure_ascii=False, indent=4)
+    def log_message(self, format, *args):
+        # Silencia logs repetitivos de ping para manter o terminal limpo
+        return
+
+def iniciar_servidor_web():
+    porta = int(os.getenv("PORT", 10000))
+    try:
+        servidor = HTTPServer(("0.0.0.0", porta), KeepAliveHandler)
+        thread = threading.Thread(target=servidor.serve_forever, daemon=True)
+        thread.start()
+        logging.info(f"🌐 Servidor de monitoramento (Keep-Alive) rodando na porta {porta}")
+    except Exception as e:
+        logging.warning(f"⚠️ Servidor web na porta {porta} nao pode ser iniciado: {e}")
 
 # 🚀 COMANDO /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -92,9 +123,9 @@ async def reset(update: Update, context: ContextTypes.DEFAULT_TYPE):
     todos_dados = carregar_todos_dados()
     
     if user_id in todos_dados:
-        # Remove o usuário do dicionário para que ele possa reconfigurar
+        # Remove o usuário do dicionário e do banco
         del todos_dados[user_id]
-        salvar_todos_dados(todos_dados)
+        deletar_usuario(user_id)
         
     context.user_data["configurando_renda"] = True
     await update.message.reply_text(
@@ -239,7 +270,18 @@ async def escutar_mensagens(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(resposta_formatada, parse_mode="Markdown")
 
 def main():
-    print("Porquinho IA Premium rodando...")
+    if not TELEGRAM_TOKEN:
+        print("❌ ERRO: A variável TELEGRAM_TOKEN não foi encontrada no arquivo .env!")
+        return
+    if not GEMINI_API_KEY:
+        print("❌ ERRO: A variável GEMINI_API_KEY não foi encontrada no arquivo .env!")
+        return
+
+    print("🐷 Porquinho IA Premium rodando...")
+    
+    # Inicia servidor web em background para o Render e UptimeRobot
+    iniciar_servidor_web()
+    
     application = Application.builder().token(TELEGRAM_TOKEN).build()
     
     # Registrando os novos comandos do bot
